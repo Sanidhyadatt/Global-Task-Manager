@@ -1,13 +1,18 @@
 {
   "name": "frontend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Global Task Manager Pro frontend",
   "main": "script.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "python3 -m http.server 8080",
+    "test": "echo \"No frontend unit tests configured\""
   },
-  "keywords": [],
+  "keywords": [
+    "task-manager",
+    "frontend",
+    "dashboard"
+  ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs"
 }

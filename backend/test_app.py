@@ -1,72 +1,85 @@
+import uuid
 import unittest
-import json
-import os
-from app import app, FILE
+
+from app import app, tasks_col, users_col
 
 
 class TaskAPITest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        app.testing = True
+        cls.client = app.test_client()
 
     def setUp(self):
-        app.testing = True
-        self.client = app.test_client()
+        users_col.delete_many({})
+        tasks_col.delete_many({})
 
-        # 🔥 reset test database before each test
-        if os.path.exists(FILE):
-            os.remove(FILE)
-            
-        with open(FILE, "w") as f:
-            json.dump([], f)
+        email = f"test-{uuid.uuid4().hex[:10]}@example.com"
+        register_res = self.client.post(
+            "/api/auth/register",
+            json={
+                "name": "Test User",
+                "email": email,
+                "password": "pass1234",
+            },
+        )
+        self.assertEqual(register_res.status_code, 201)
+        register_data = register_res.get_json()
+        self.token = register_data["token"]
+        self.headers = {"Authorization": f"Bearer {self.token}"}
 
-    def tearDown(self):
-        # clean DB after tests
-        if os.path.exists(FILE):
-            os.remove(FILE)
-
-    # ---------- GET TEST ----------
-    def test_get_tasks(self):
-        response = self.client.get("/tasks")
+    def test_health(self):
+        response = self.client.get("/api/health")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.is_json, True)
+        self.assertTrue(response.get_json().get("ok"))
 
-    # ---------- POST TEST ----------
-    def test_add_task(self):
-        response = self.client.post(
-            "/tasks",
-            json={"title": "Test Task"}
+    def test_auth_me(self):
+        response = self.client.get("/api/auth/me", headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("user", response.get_json())
+
+    def test_create_and_list_task(self):
+        create_response = self.client.post(
+            "/api/tasks",
+            headers=self.headers,
+            json={
+                "title": "Prepare internship project",
+                "description": "Finalize MongoDB and Docker integration",
+                "status": "in_progress",
+                "priority": "high",
+                "tags": ["internship", "backend"],
+            },
         )
 
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(create_response.status_code, 201)
+        created_task = create_response.get_json().get("task")
+        self.assertEqual(created_task["title"], "Prepare internship project")
 
-        data = json.loads(response.data)
+        list_response = self.client.get("/api/tasks", headers=self.headers)
+        self.assertEqual(list_response.status_code, 200)
+        payload = list_response.get_json()
+        self.assertGreaterEqual(len(payload.get("tasks", [])), 1)
 
-        self.assertIn("title", data)
-        self.assertEqual(data["title"], "Test Task")
-
-    # ---------- UPDATE TEST ----------
-    def test_update_task(self):
-        # create task first
-        res = self.client.post("/tasks", json={"title": "Old Task"})
-        task = json.loads(res.data)
-
-        task_id = task["id"]
-
-        # update it
-        response = self.client.put(
-            f"/tasks/{task_id}",
-            json={"title": "Updated Task", "completed": True}
+    def test_toggle_and_delete_task(self):
+        create_response = self.client.post(
+            "/api/tasks",
+            headers=self.headers,
+            json={"title": "Delete target"},
         )
+        task_id = create_response.get_json()["task"]["id"]
 
-        self.assertEqual(response.status_code, 200)
+        toggle_response = self.client.patch(
+            f"/api/tasks/{task_id}/toggle",
+            headers=self.headers,
+        )
+        self.assertEqual(toggle_response.status_code, 200)
+        self.assertTrue(toggle_response.get_json()["task"]["completed"])
 
-    # ---------- DELETE TEST ----------
-    def test_delete_task(self):
-        res = self.client.post("/tasks", json={"title": "Delete Me"})
-        task = json.loads(res.data)
-
-        task_id = task["id"]
-
-        response = self.client.delete(f"/tasks/{task_id}")
-        self.assertEqual(response.status_code, 200)
+        delete_response = self.client.delete(
+            f"/api/tasks/{task_id}",
+            headers=self.headers,
+        )
+        self.assertEqual(delete_response.status_code, 200)
 
 
 if __name__ == "__main__":
