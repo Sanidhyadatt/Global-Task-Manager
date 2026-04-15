@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create account for Global Task Manager.">
+    <title>Sign Up | Global Task Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="auth-container">
+        <section id="feedback" class="feedback hide"></section>
+        <article class="card auth-single">
+            <h1>Create Account</h1>
+            <p class="sub">Start your productivity workflow.</p>
+            <form id="registerForm" class="stack">
+                <input id="registerName" type="text" placeholder="Full name" required>
+                <input id="registerEmail" type="email" placeholder="Email" required>
+                <input id="registerPassword" type="password" placeholder="Password (6+ chars)" required>
+                <button type="submit">Create Account</button>
+            </form>
+            <p class="auth-switch">Already have an account? <a href="login.html">Login</a></p>
+        </article>
+    </main>
+    <script src="auth.js"></script>
+</body>
+</html>

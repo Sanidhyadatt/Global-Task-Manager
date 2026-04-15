@@ -3,37 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Task Manager technical assignment solution.">
-    <title>Task Manager Assignment</title>
+    <meta name="description" content="Global Task Manager with authentication and advanced workflows.">
+    <title>Global Task Manager</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <main class="container">
-        <header>
-            <h1>Task Manager</h1>
-            <p class="sub">Full stack assignment build with bonus features</p>
+        <header class="topbar">
+            <div>
+                <h1>Global Task Manager</h1>
+                <p class="sub">Plan, prioritize, and finish work with clarity.</p>
+            </div>
+            <button id="logoutBtn" class="btn-secondary">Logout</button>
         </header>
 
         <section id="feedback" class="feedback hide"></section>
 
-        <section class="card">
-            <form id="taskForm" class="task-form">
-                <input id="taskTitle" type="text" placeholder="Enter a task title" required maxlength="120">
-                <button type="submit">Add</button>
-            </form>
+        <section id="appSection">
+            <article class="card">
+                <h2>Create Task</h2>
+                <form id="taskForm" class="task-form">
+                    <input id="taskTitle" type="text" placeholder="Task title" required maxlength="120">
+                    <textarea id="taskDescription" placeholder="Description (optional)"></textarea>
+                    <div class="grid-two">
+                        <select id="taskStatus">
+                            <option value="todo">To do</option>
+                            <option value="in_progress">In progress</option>
+                            <option value="done">Done</option>
+                        </select>
+                        <select id="taskPriority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    <div class="grid-two">
+                        <input id="taskDueDate" type="datetime-local">
+                        <input id="taskTags" type="text" placeholder="Tags (comma separated)">
+                    </div>
+                    <button type="submit">Add Task</button>
+                </form>
+            </article>
 
             <div class="controls">
-                <label for="filterSelect">Filter</label>
-                <select id="filterSelect">
-                    <option value="all">All</option>
-                    <option value="active">Active</option>
-                    <option value="completed">Completed</option>
+                <input id="searchInput" type="text" placeholder="Search title, description, tags">
+                <select id="statusFilter">
+                    <option value="">All status</option>
+                    <option value="todo">To do</option>
+                    <option value="in_progress">In progress</option>
+                    <option value="done">Done</option>
+                </select>
+                <select id="priorityFilter">
+                    <option value="">All priority</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                </select>
+                <select id="sortBy">
+                    <option value="created_at">Created</option>
+                    <option value="updated_at">Updated</option>
+                    <option value="due_date">Due date</option>
+                    <option value="title">Title</option>
+                </select>
+                <select id="sortOrder">
+                    <option value="desc">Desc</option>
+                    <option value="asc">Asc</option>
                 </select>
             </div>
 
+            <div id="stats" class="stats"></div>
             <div id="loading" class="state hide">Loading tasks...</div>
             <div id="errorState" class="state error hide"></div>
             <div id="emptyState" class="state hide">No tasks found.</div>
@@ -41,22 +84,41 @@
             <ul id="taskList" class="task-list"></ul>
         </section>
 
-        <section class="note card">
-            <h2>Bonus Included</h2>
-            <ul>
-                <li>Edit task title</li>
-                <li>Filter by completed/incomplete</li>
-                <li>Persistent storage using MongoDB</li>
-                <li>Docker setup and backend tests</li>
-            </ul>
-        </section>
-
-        <section class="note card">
-            <h2>Advanced APIs</h2>
-            <p>Additional authenticated endpoints are available under <strong>/api</strong> for portfolio depth.</p>
+        <section id="editModal" class="modal-overlay hide" aria-hidden="true">
+            <article class="modal-card" role="dialog" aria-modal="true" aria-labelledby="editTaskTitle">
+                <div class="modal-head">
+                    <h2 id="editTaskTitle">Edit Task</h2>
+                    <button id="closeEditModal" class="icon-close" type="button" aria-label="Close">x</button>
+                </div>
+                <form id="editTaskForm" class="stack">
+                    <input id="editTaskName" type="text" placeholder="Task title" required maxlength="120">
+                    <textarea id="editTaskDescription" placeholder="Description (optional)"></textarea>
+                    <div class="grid-two">
+                        <select id="editTaskStatus" required>
+                            <option value="todo">To do</option>
+                            <option value="in_progress">In progress</option>
+                            <option value="done">Done</option>
+                        </select>
+                        <select id="editTaskPriority" required>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    <div class="grid-two">
+                        <input id="editTaskDueDate" type="datetime-local">
+                        <input id="editTaskTags" type="text" placeholder="Tags (comma separated)">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="cancelEdit" class="ghost">Cancel</button>
+                        <button type="submit">Save Changes</button>
+                    </div>
+                </form>
+            </article>
         </section>
     </main>
 
-    <script src="script.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
